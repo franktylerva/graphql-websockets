@@ -1,0 +1,29 @@
+type Query {
+    people: [Person]
+}
+
+type Mutation {
+    addPerson(input: PersonInput): Person
+}
+
+type Subscription {
+    peopleUpdates: Person
+}
+
+input PersonInput {
+    name: String
+    age: Int
+}
+
+type Person {
+    name: String
+    age: Int
+    address: Address
+}
+
+type Address {
+    street: String
+    city: String
+    state: String
+    zip: String
+}
