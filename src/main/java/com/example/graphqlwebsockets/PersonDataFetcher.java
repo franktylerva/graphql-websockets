@@ -1,7 +1,5 @@
 package com.example.graphqlwebsockets;
 
-import com.netflix.dgs.codgen.generated.types.Address;
-import com.netflix.dgs.codgen.generated.types.Person;
 import com.netflix.dgs.codgen.generated.types.PersonInput;
 import com.netflix.graphql.dgs.*;
 import lombok.RequiredArgsConstructor;
@@ -19,41 +17,23 @@ import java.util.List;
 public class PersonDataFetcher {
 
     private final ReactiveRedisOperations<String, Person> redisTemplate;
-
-    private List<Person> people = new ArrayList<>();
-
-    @PostConstruct
-    public void loadPeople() {
-        people.add( Person.newBuilder().name("John Doe").age(24)
-                .address( Address.newBuilder()
-                        .street("123 First Street")
-                        .city("New York")
-                        .state("NY")
-                        .zip("12345")
-                        .build()).build());
-
-        people.add( Person.newBuilder().name("Jane Doe").age(24)
-                .address( Address.newBuilder()
-                        .street("123 First Street")
-                        .city("New York")
-                        .state("NY")
-                        .zip("12345")
-                        .build()).build());
-    }
+    private final PersonRepository personRepository;
 
     @DgsQuery
-    public List<Person> people() {
-        return people;
+    public Iterable<Person> people() {
+        return personRepository.findAll();
     }
 
     @DgsMutation
     public Person addPerson(@InputArgument("input") PersonInput p) {
 
-        var person = Person.newBuilder()
-                .name(p.getName())
+
+        var person = Person.builder().name(p.getName())
                 .age(p.getAge())
+                .address( new Address("129 Catoctin Cir", "Leesburg", "VA", "20175" ) )
                 .build();
-        people.add( person );
+
+        personRepository.save( person );
 
         // Publish person
         redisTemplate.convertAndSend("peopleUpdates", person ).subscribe();
